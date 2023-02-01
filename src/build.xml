@@ -3,7 +3,6 @@ build file for ant
 http://jakarta.apache.org/ant/index.html
 -->
  
-<!-- <project name="moneydance" default="all" basedir="."> -->
 <project name="budgeteditor" default="all" basedir=".">
   	<property name="version"  value="2.2"/>
   	<property name="src" value="."/>
@@ -56,8 +55,7 @@ http://jakarta.apache.org/ant/index.html
 			<arg value="budgeteditor"/>
 			<arg line="${dist}/budgeteditor.mxt"/>
 		</java>
-
-		<!--<delete file="${dist}/budgeteditor.mxt" verbose="false" failonerror="true" /> -->
+		
 		<move file="${src}/s-budgeteditor.mxt" tofile="${dist}/budgeteditor.mxt"  verbose="false" failonerror="true" />
 	</target>
 
