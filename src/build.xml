@@ -34,7 +34,7 @@ http://jakarta.apache.org/ant/index.html
 		<mkdir dir="${build}" />
 	</target>
 
-	<target name="budgeteditor" depends="init,cleanbudgeteditor">
+	<target name="budgeteditor" depends="init">
 		<javac srcdir="${src}" debug="${debug}" optimize="${optimize}" classpathref="classpath" destdir="${build}" failonerror="true" includes="com/moneydance/modules/features/budgeteditor/**"/>
 
 		<jar destfile="${dist}/budgeteditor.mxt">
