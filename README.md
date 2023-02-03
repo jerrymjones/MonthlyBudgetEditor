@@ -1,5 +1,4 @@
-# MonthlyBudgetEditor
-MoneyDance Monthly Budget Editor
+# MoneyDance Monthly Budget Editor
 
 For help using this extension see the [Wiki](https://github.com/jerrymjones/MonthlyBudgetEditor/wiki).
 
