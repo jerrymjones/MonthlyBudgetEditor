@@ -2,9 +2,10 @@
   "id" = "monthlybudgeteditor"
   "extension_type" = "java"
   "vendor" = "Jerry Jones"
-  "vendor_url" = "TBD"
-  "module_build" = "1"
+  "vendor_url" = "https://github.com/jerrymjones/MonthlyBudgetEditor/wiki"
+  "module_build" = "2201"
   "minbuild" = "1706"
   "module_name" = "Monthly Budget Editor"
-  "module_desc" = "Provides the ability to create and edit monthly budgets by year in a spreadsheet format. You can initialize a yearly budget from last year's actuals or budget if desired.\n"
+  "module_desc" = "<html><body><title>Monthly Budget Editor</title><p>Provides the ability to create and edit monthly budgets by year in a spreadsheet format. You can initialize a yearly budget from last year's actuals or budget if desired.</p></body></html>"
+  "desc" = "Provides the ability to create and edit monthly budgets by year in a spreadsheet format. You can initialize a yearly budget from last year's actuals or budget if desired."
 }

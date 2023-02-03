@@ -4,7 +4,7 @@
     restriction. A credit in the code comments would be nice, but not in any way mandatory.
 
     The default Tab Action in a JTable causes focus to move to the next cell. When the end of line is reached focus move to the first cell of the next line. 
-    When the end of the table is reached focus moves to the top of the table. There may be times when you want to change this default behaviour.
+    When the end of the table is reached focus moves to the top of the table. There may be times when you want to change this default behavior.
 
     For example, maybe you want focus to move to the next editable cell in the table. Do you really need to write a custom Tab Action from scratch or can you 
     leverage the functionality of the default Tab Action? If you have read my previous entry on Wrapping Actions then you know the answer, if not then maybe 
@@ -36,7 +36,7 @@ import javax.swing.KeyStroke;
 * The default Tab Action in a JTable causes focus to move to the next cell. When
 * the end of line is reached focus move to the first cell of the next line. 
 * When the end of the table is reached focus moves to the top of the table. 
-* There may be times when you want to change this default behaviour so that
+* There may be times when you want to change this default behavior so that
 * a tab moves to the next editable cell.
 *
 * @author  Rob Camick
@@ -69,7 +69,7 @@ public class EditableCellFocusAction extends WrappedAction
 		final int originalRow = this.table.getSelectedRow();
 		final int originalColumn = this.table.getSelectedColumn();
 
-		// Invike the original action for this event
+		// Invoke the original action for this event
 		this.invokeOriginalAction( e );
 
 		// Get the currently selected row and column

@@ -75,7 +75,7 @@ public class CurrencyTableCellEditor extends DefaultCellEditor {
 
     
     /** 
-     * This medhod overrides the default function to provide justification 
+     * This method overrides the default function to provide justification 
      * of the text as well as selecting the existing text when the editor
      * starts so that any typing will replace the existing text.
      * 

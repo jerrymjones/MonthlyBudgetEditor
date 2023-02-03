@@ -208,7 +208,7 @@ public class TableModel extends AbstractTableModel  {
                 // Iterate through all months
                 for (int month = 1; month <= 12; month++)
                     {
-                    // If the datachanged flag for the month in BudgetCategoryItems is true process that month 
+                    // If the data changed flag for the month in BudgetCategoryItems is true process that month 
                     if (item.getDataChangedForMonth(month))
                         {
                         final BudgetItem i = budgetItemList.getBudgetItemForCategory(item.getAccount(), new BudgetPeriod(DateUtil.getDate(this.year, month, 1), PeriodType.MONTH));
@@ -260,7 +260,7 @@ public class TableModel extends AbstractTableModel  {
      * @param row - The row from the table which is the index into the category items.
      * @return BudgetCategoryItem - The selected BudgetCategoryItem or null if there isn't one.
      */
-    public BudgetCategoryItem getBugetCategoryItem(final int row) {
+    public BudgetCategoryItem getBudgetCategoryItem(final int row) {
         return this.budgetCategoriesList.getCategoryItemByIndex(row);
     }
 

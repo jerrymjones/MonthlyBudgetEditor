@@ -158,7 +158,7 @@ public class Table extends EditingTable {
 	 * Prepare the renderer for the cell at the specified row and column.
 	 * 
 	 * @param renderer - The table cell renderer object.
-	 * @param row - The row to reppare.
+	 * @param row - The row to prepare.
 	 * @param column - The column to prepare.
 	 * @return Component - The component being rendered.
 	 */
@@ -175,7 +175,7 @@ public class Table extends EditingTable {
 
 		// Set text color of totals. Other than the category name in column 0, any other 
 		// cell could potentially be a total so we color it specially.
-		if ((!this.model.isCellEditable(row, column)) && ((column > 0) || (this.model.getBugetCategoryItem(row).getHasChildren())))
+		if ((!this.model.isCellEditable(row, column)) && ((column > 0) || (this.model.getBudgetCategoryItem(row).getHasChildren())))
 			{
 			if (row == 0)
             	c.setForeground(new Color(33, 144, 255));	// Medium blue
@@ -314,7 +314,7 @@ public class Table extends EditingTable {
 			BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 			if (item != null)
 				{
-				// Get actal spending by month for last year 
+				// Get actual spending by month for last year 
 				if (!item.getHasChildren())
 					{
 					// Retrieve the transaction totals for this account from last year
@@ -392,7 +392,7 @@ public class Table extends EditingTable {
 	 */
    	public void showPopup(final JPopupMenu popMenu, final int row, final int column, final int x, final int y) {
 		// Only process editable cells
-		if ((column > 0) && (!this.model.getBugetCategoryItem(row).getHasChildren())) 
+		if ((column > 0) && (!this.model.getBudgetCategoryItem(row).getHasChildren())) 
 			{
 			// Stop editing in case a different cell was in edit mode
 			final TableCellEditor editor = this.table.cellEditor;
@@ -457,7 +457,7 @@ public class Table extends EditingTable {
 	 * 
 	 * @param menu - The pop-up menu to add the item to.
 	 * @param identifier - The identifier that will be used to determine what item was selected.
-	 * @param text - The textof the pop-up menu item.
+	 * @param text - The text of the pop-up menu item.
 	 * @param tooltip - A tooltip for the menu item or null if none is desired.
 	 * @param listener - The action listener for this item.
 	 * @return JMenuItem - Returns the new menu item object.
@@ -609,7 +609,7 @@ public class Table extends EditingTable {
 		final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 		if (item != null)
 			{
-			// Get total actal spending last month plus this month
+			// Get total actual spending last month plus this month
 			final TransactionTotals actualSpending = new TransactionTotals(this.context, item.getAccount(), this.model.getBudgetYear(), column - 1, 2);
 			
 			// Get total amount budgeted last month + this month
@@ -660,7 +660,7 @@ public class Table extends EditingTable {
 		final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 		if (item != null)
 			{
-			// Get total actal spending since the beginning of the year including this month
+			// Get total actual spending since the beginning of the year including this month
 			final TransactionTotals actualSpending = new TransactionTotals(this.context, item.getAccount(), this.model.getBudgetYear(), 1, column);
 			
 			// Get total amount budgeted for the year to date (up to the end of the selected month)
@@ -791,7 +791,7 @@ public class Table extends EditingTable {
 		final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 		if (item != null)
 			{
-			// Get total actal spending since the beginning of the year including this month
+			// Get total actual spending since the beginning of the year including this month
 			final TransactionTotals actualSpending = new TransactionTotals(this.context, item.getAccount(), this.model.getBudgetYear(), 1, column);
 
 			// Set prior months budgets equal to actual spending for each month
