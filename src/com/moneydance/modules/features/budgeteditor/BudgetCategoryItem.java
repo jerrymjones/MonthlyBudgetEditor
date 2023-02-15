@@ -278,7 +278,7 @@ final class BudgetCategoryItem {
                     }
                 }
             else
-                System.err.println("Error: Parent item is null in setBudgetValueForMonth.");
+                System.err.println("ERROR: Parent item is null in setBudgetValueForMonth.");
             }
     }
 }

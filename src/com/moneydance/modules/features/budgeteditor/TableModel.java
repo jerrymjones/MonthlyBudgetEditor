@@ -156,7 +156,7 @@ public class TableModel extends AbstractTableModel  {
      * @param acct - The account to add 
      * @param type - The account type we're looking for,
      */
-    private void addIf(Account acct, AccountType type) 
+    private void addIf(final Account acct, final AccountType type) 
     {
     // Get the budget item list
     final BudgetItemList budgetItemList = this.budget.getItemList();
@@ -215,15 +215,8 @@ public class TableModel extends AbstractTableModel  {
                         if (i != null)
                             {
                             // Save the new budget at the old BudgetItem
-                            // If the value to write is 0 and there is a prior budget item for this period then just delete
-                            // the item. Otherwise, update the old item with the new information.
-                            if (item.getBudgetValueForMonth(month) != 0)
-                                {
-                                i.setAmount(item.getBudgetValueForMonth(month));
-                                i.syncItem();
-                                }
-                            else    
-                                i.deleteItem();
+                            i.setAmount(item.getBudgetValueForMonth(month));
+                            i.syncItem();
                             }
                         else
                             {
@@ -246,7 +239,7 @@ public class TableModel extends AbstractTableModel  {
                     }
                 }
             else
-                System.err.println("Error: Item is null in saveData.");
+                System.err.println("ERROR: Item is null in saveData.");
             }
 
         // Clear the global data changed flag
@@ -353,7 +346,7 @@ public class TableModel extends AbstractTableModel  {
             }
         else
             {
-            System.err.println("Error: Item is null in getValueAt.");
+            System.err.println("ERROR: Item is null in getValueAt.");
             return null;
             }
     }
@@ -382,7 +375,7 @@ public class TableModel extends AbstractTableModel  {
     public boolean isCellEditable(final int row, final int column) {
         if ((column > 0) && (column <= 12)) 
             {
-            BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
+            final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
             if (item != null)
                 {
                 if (!item.getHasChildren()) 
@@ -392,7 +385,7 @@ public class TableModel extends AbstractTableModel  {
                     }
                 }
             else
-                System.err.println("Error: Item is null in isCellEditable.");
+                System.err.println("ERROR: Item is null in isCellEditable.");
             }
         // Column 0 (Category name), column 13 (Totals) and rows that are for categories that 
         // have children are not editable
@@ -441,6 +434,6 @@ public class TableModel extends AbstractTableModel  {
                 }
             }
         else
-            System.err.println("Error: Item is null in setValueAt.");
+            System.err.println("ERROR: Item is null in setValueAt.");
     }
 }

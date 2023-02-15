@@ -189,7 +189,7 @@ public class Table extends EditingTable {
 			}
 		
 		// Moneydance doesn't really support negative budgets for some odd reason so highlight those values red
-		Object value = this.table.getValueAt(row, column);
+		final Object value = this.table.getValueAt(row, column);
 		if (value instanceof Number)
 			{
 			if (((Double)value < 0) && (this.model.isCellEditable(row, column)))
@@ -214,7 +214,7 @@ public class Table extends EditingTable {
 	 */
 	public void copyPriorBudget() {
 		// Get the list of available budgets
-		final BudgetList budgetList = new BudgetList(this.context);
+		final MyBudgetList budgetList = new MyBudgetList(this.context);
 		final String strNames[] = budgetList.getBudgetNames();
 
 		// If there are no budgets then we have to inform the user then exit
@@ -295,7 +295,7 @@ public class Table extends EditingTable {
 							}
 						}
 					else
-						System.err.println("Error: "+acct.getFullAccountName()+" not found in categories list.");
+						System.err.println("ERROR: "+acct.getFullAccountName()+" not found in categories list.");
 					}
 				}
 			}
@@ -311,7 +311,7 @@ public class Table extends EditingTable {
 		for (int row = 0; row < this.model.getRowCount(); row++) 
 			{
 			// Get the budget category item
-			BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
+			final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 			if (item != null)
 				{
 				// Get actual spending by month for last year 
@@ -336,7 +336,7 @@ public class Table extends EditingTable {
 					}
 				}
 			else
-				System.err.println("Error: Item is null in copyPriorActuals.");
+				System.err.println("ERROR: Item is null in copyPriorActuals.");
 			}
 	}
 
@@ -434,16 +434,16 @@ public class Table extends EditingTable {
 				// Add a listener to unset the cell highlight for a right clicked cell if the menu is cancelled 
 				popMenu.addPopupMenuListener(new PopupMenuListener() {
 					@Override
-					public void popupMenuCanceled(PopupMenuEvent popupMenuEvent) {
+					public void popupMenuCanceled(final PopupMenuEvent popupMenuEvent) {
 						// Remove the cell highlight for the cell that was right clicked
 						Table.this.popRow = -1;
 						Table.this.popColumn = -1;
 						Table.this.model.fireTableCellUpdated(row, column);
 					}
 					@Override
-					public void popupMenuWillBecomeInvisible(PopupMenuEvent popupMenuEvent) {}
+					public void popupMenuWillBecomeInvisible(final PopupMenuEvent popupMenuEvent) {}
 					@Override
-					public void popupMenuWillBecomeVisible(PopupMenuEvent popupMenuEvent) {}
+					public void popupMenuWillBecomeVisible(final PopupMenuEvent popupMenuEvent) {}
 				});
 
 			// Show the popup
@@ -636,7 +636,7 @@ public class Table extends EditingTable {
 			this.model.setValueAt(v, row, column);
 			}
 		else
-			System.err.println("Error: This month's item is null in rolloverPrior.");
+			System.err.println("ERROR: This month's item is null in rolloverPrior.");
 	}
 
 	
@@ -687,7 +687,7 @@ public class Table extends EditingTable {
 			this.model.setValueAt(v, row, column);
 			}
 		else
-			System.err.println("Error: Item is null in rolloverAll.");
+			System.err.println("ERROR: Item is null in rolloverAll.");
 	}
 
 	
@@ -718,7 +718,7 @@ public class Table extends EditingTable {
 			this.model.setValueAt(v, row, column);
 			}
 		else
-			System.err.println("Error: Item is null in settoActualSpend.");
+			System.err.println("ERROR: Item is null in settoActualSpend.");
 	}
 
 	
@@ -731,7 +731,7 @@ public class Table extends EditingTable {
 	 */
 	private void settoPriorSpend(final int row, final int column)
 	{
-		BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
+		final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 		if (item != null)
 			{
 			// Get prior month's actuals
@@ -743,7 +743,7 @@ public class Table extends EditingTable {
 			this.model.setValueAt(v, row, column);
 			}
 		else
-			System.err.println("Error: Item is null in settoPriorSpend.");	
+			System.err.println("ERROR: Item is null in settoPriorSpend.");	
 	}
     
 	
@@ -775,7 +775,7 @@ public class Table extends EditingTable {
 			this.model.setValueAt((Double)(decemberValue / 100d), row, 12);
 			}
 		else
-			System.err.println("Error: Item is null in distributeTotal(.");
+			System.err.println("ERROR: Item is null in distributeTotal(.");
 	}
 
 	/** 
@@ -809,6 +809,6 @@ public class Table extends EditingTable {
 				}
 			}
 		else
-			System.err.println("Error: Item is null in setToActuals.");
+			System.err.println("ERROR: Item is null in setToActuals.");
 	}
 }

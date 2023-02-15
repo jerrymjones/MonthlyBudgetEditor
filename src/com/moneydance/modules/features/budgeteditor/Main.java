@@ -98,25 +98,30 @@ public class Main extends FeatureModule {
   }
 
 
-  private synchronized void showConsole() {
-    if (this.budgetEditorWindow == null) {
+  private synchronized void showConsole() 
+  {
+    if (this.budgetEditorWindow == null) 
+      {
       this.budgetEditorWindow = new BudgetEditorWindow(this);
 
-      if (this.budgetEditorWindow != null) {
+      if (this.budgetEditorWindow != null) 
+        {
         if (!this.budgetEditorWindow.bError)
-          this.budgetEditorWindow.showWindow();
-        else {
+          this.budgetEditorWindow.setVisible(true);
+        else 
+          {
           this.closeConsole();
           return;
+          }
         }
-      }
-    }
-    else {
+     }
+    else 
+      {
       // Force a reload if the window is already initialized.
       this.budgetEditorWindow.getModel().LoadData();
       this.budgetEditorWindow.setVisible(true);
       this.budgetEditorWindow.toFront();
       this.budgetEditorWindow.requestFocus();
-    }
+      }
   }
 }

@@ -38,6 +38,7 @@ import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -45,7 +46,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.awt.Toolkit;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -61,6 +61,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableColumn;
 
 import com.infinitekind.moneydance.model.Budget;
@@ -99,7 +100,7 @@ public class BudgetEditorWindow extends JFrame
   private JComboBox<String> budgetSelector;
 
   // List of available monthly budgets that can be edited
-  private BudgetList budgetList;
+  private MyBudgetList budgetList;
   private int budgetIndex;
 
   // Budget map
@@ -116,8 +117,6 @@ public class BudgetEditorWindow extends JFrame
   // Panels used to display information
   JPanel topLtPanel;
   JPanel topRtPanel;
-  //JPanel bottomLtPanel; 
-  //JPanel bottomRtPanel;
 
   // Clickable User Guide link
   JLabel helpLink;
@@ -151,7 +150,6 @@ public class BudgetEditorWindow extends JFrame
 
     // Set the frame size based on the screen size of the primary display
     this.setFrameSize();
-    this.setResizable(false);
 
     // Set what to do on close
     this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -164,7 +162,6 @@ public class BudgetEditorWindow extends JFrame
     * Add the Top Panel - Configuration Options
     */
     final JPanel topPanel = new JPanel(new BorderLayout());
-    topPanel.setSize(new Dimension( this.frameWidth, BudgetEditorWindow.TOP_HEIGHT ));
     topPanel.setBackground(colors.headerBG);
     this.add( topPanel, BorderLayout.NORTH );
 
@@ -179,7 +176,7 @@ public class BudgetEditorWindow extends JFrame
     /*
     ** Budget selector - Get a list of monthly style budgets to select from
     */
-    this.budgetList = new BudgetList(this.context);
+    this.budgetList = new MyBudgetList(this.context);
     final String strNames[] = this.budgetList.getBudgetNames();
 
     // If there are no budgets then we have to inform the user then exit
@@ -200,12 +197,12 @@ public class BudgetEditorWindow extends JFrame
 
     // Create the selector
     final JLabel budgetLabel = new JLabel("Budget:");
-    topCtrPanel.add(budgetLabel,GridC.getc(0, 0).insets(15, 0, 15, 15));
+    topCtrPanel.add(budgetLabel,GridC.getc(0, 0).insets(10, 0, 10, 15));
     this.budgetSelector = new JComboBox<String>(strNames);
     this.budgetIndex = 0;  // Save the currently selected item in case we need to revert to it.
     this.budgetSelector.setSelectedIndex(this.budgetIndex);    
     this.budgetSelector.setToolTipText("Select the budget to edit");  
-    topCtrPanel.add(this.budgetSelector, GridC.getc(1, 0).insets(15, 0, 15, 15));
+    topCtrPanel.add(this.budgetSelector, GridC.getc(1, 0).insets(10, 0, 10, 15));
     
     // Create an action listener to dispatch perform the action when this control is changed
     this.budgetSelector.addActionListener(new ActionListener() {
@@ -231,7 +228,7 @@ public class BudgetEditorWindow extends JFrame
     ** Budget year selector - Select budget year - last year, this year, and next year
     */
     final JLabel budgetYrLabel = new JLabel("Budget Year:");
-    topCtrPanel.add(budgetYrLabel,GridC.getc(2, 0).insets(15, 0, 15, 15));
+    topCtrPanel.add(budgetYrLabel,GridC.getc(2, 0).insets(10, 0, 10, 15));
 
     // Get the current year then allow selection of that year plus/minus 1 year
     final Calendar c = Calendar.getInstance();
@@ -241,7 +238,7 @@ public class BudgetEditorWindow extends JFrame
     this.yearIndex = 1;  // Save the currently selected item in case we need to revert to it.
     this.yearSelector.setSelectedIndex(this.yearIndex);  // Set the current year as the default selection
     this.yearSelector.setToolTipText("Select the budgeting year to edit");
-    topCtrPanel.add(this.yearSelector, GridC.getc(3, 0).insets(15, 0, 15, 15));
+    topCtrPanel.add(this.yearSelector, GridC.getc(3, 0).insets(10, 0, 10, 15));
     
     // Create an action listener to dispatch perform the action when this control is changed
     this.yearSelector.addActionListener(new ActionListener() {
@@ -263,29 +260,9 @@ public class BudgetEditorWindow extends JFrame
         }
       });
 
-      /*
-      ** Help Item
-      */
-      // Create a panel in the upper left corner of the window
-      this.topLtPanel = new JPanel(new GridBagLayout());
-      this.topLtPanel.setBackground(colors.headerBG);
-      topPanel.add( this.topLtPanel, BorderLayout.WEST);
-
-      // Add a clickable text link to request help
-      this.helpLink = new JLabel("User Guide", JLabel.LEFT);
-      this.helpLink.setForeground(new Color(33, 144, 255));
-      this.topLtPanel.add(this.helpLink, GridC.getc(0, 0).insets(15, 15, 15, 15));
-
-      // Create an action listener to dispatch the action when this label is clicked
-      this.helpLink.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(final MouseEvent e) {
-          BudgetEditorWindow.this.showHelp();
-        }
-      });
 
       /*
-      ** Initialize Button
+      ** Top right panel - Initialize Button
       */
       // Create a panel in the upper right corner of the window
       this.topRtPanel = new JPanel(new GridBagLayout());
@@ -295,7 +272,7 @@ public class BudgetEditorWindow extends JFrame
       // Add a button to initialize the budget from either prior year's actuals or prior year's budget
       final JButton initButton = new JButton("Initialize Budget");
       initButton.setToolTipText("Initialize the selected budget with the prior year budget or actuals");
-      this.topRtPanel.add(initButton, GridC.getc(0, 0).insets(15, 0, 15, 15));   
+      this.topRtPanel.add(initButton, GridC.getc(0, 0).insets(10, 0, 10, 15));   
  
       // Create an action listener to dispatch the action when this button is clicked
       initButton.addActionListener(new ActionListener() {
@@ -305,20 +282,46 @@ public class BudgetEditorWindow extends JFrame
         }
       });
 
+      /*
+      ** Top left panel - Help Item
+      */
+      // Create a panel in the upper left corner of the window
+      this.topLtPanel = new JPanel(new GridBagLayout());
+      this.topLtPanel.setBackground(colors.headerBG);
+      topPanel.add( this.topLtPanel, BorderLayout.WEST);
+
+      // Add a clickable text link to request help
+      this.helpLink = new JLabel("User Guide", JLabel.LEFT);
+      this.helpLink.setForeground(new Color(33, 144, 255));
+
+      // Set the preferred size of this item so that the center panel actually is
+      // centered on the frame.
+      final Dimension d = this.topRtPanel.getPreferredSize();
+      d.setSize(d.width - 30, d.height);
+      this.helpLink.setPreferredSize(d);
+      
+      // Add the help link
+      this.topLtPanel.add(this.helpLink, GridC.getc(0, 0).insets(10, 15, 10, 15));
+
+      // Create an action listener to dispatch the action when this label is clicked
+      this.helpLink.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(final MouseEvent e) {
+          BudgetEditorWindow.this.showHelp();
+        }
+      });
+
     /*
     * Add the Middle Panel - Budget Editor Table
     */
-    final JPanel middlePanel = new JPanel(new GridBagLayout());
-    middlePanel.setSize(new Dimension( this.frameWidth, this.frameHeight - BudgetEditorWindow.TOP_HEIGHT - BudgetEditorWindow.BOTTOM_HEIGHT ));
+    final JPanel middlePanel = new JPanel(new BorderLayout());
+    middlePanel.setPreferredSize(new Dimension( this.frameWidth, this.frameHeight - BudgetEditorWindow.TOP_HEIGHT - BudgetEditorWindow.BOTTOM_HEIGHT ));
     middlePanel.setForeground(colors.defaultTextForeground);
+    middlePanel.setBorder(new EmptyBorder(15, 15, 0, 15));
     this.add( middlePanel, BorderLayout.CENTER ); 
 
     // Create a table to use to edit the budget values
     this.table = new Table(this, this.context, this.tableModel = new TableModel(this, this.context, this.budgetList.getBudget((String)this.budgetSelector.getSelectedItem()), (String)this.yearSelector.getSelectedItem() ), colors);
-
-    // This is the size of the viewport for the data minus the Column Header and scrollbars
-    this.table.setPreferredScrollableViewportSize(new Dimension(middlePanel.getWidth() - 28, middlePanel.getHeight() - 48));
-    this.table.setFillsViewportHeight(true);
 
     // Do not allow selection of an entire row
     this.table.setRowSelectionAllowed(false);
@@ -326,27 +329,26 @@ public class BudgetEditorWindow extends JFrame
     // Do not allow columns to be reordered by dragging them
     this.table.getTableHeader().setReorderingAllowed(false);
 
-    // Do not allow user resize of columns
-    this.table.getTableHeader().setResizingAllowed(false);
 
     // Set the minimum width of the category column
     final TableColumn colSelect = this.table.getColumn("Category");
 		colSelect.setMinWidth(240);
 
-    //Create the scroll pane and add the table to it.
+    // Create the scroll pane and add the table to it. 
+    // Note: If this doesn't work on low width screens I might want to allow horizontal scrollbars
+    // and resize the columns same as I did for the report window. Would have to turn off auto 
+    // resizing of the table too. this.table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     final JScrollPane scrollPane = new JScrollPane(this.table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-    //Add the scroll pane to this panel.
-    middlePanel.add(scrollPane, GridC.getc(0, 0).insets(15, 15, 0, 15));
+    // Add the scroll pane to this panel.
+    middlePanel.add(scrollPane, BorderLayout.CENTER);
 
     /*
     * Add the Bottom Panel - Action Buttons
     */  
     final JPanel bottomPanel = new JPanel(new BorderLayout());
-    bottomPanel.setSize(new Dimension( this.frameWidth, BudgetEditorWindow.BOTTOM_HEIGHT ));
     bottomPanel.setForeground(colors.defaultTextForeground);
     this.add( bottomPanel, BorderLayout.SOUTH ); 
-
     /*
     ** Create a center panel at the bottom for the save and cancel buttons.
     */
@@ -388,7 +390,7 @@ public class BudgetEditorWindow extends JFrame
       */
 /*
       this.bottomLtPanel = new JPanel(new GridBagLayout());
-      this.bottomLtPanel.setSize(new Dimension( this.frameWidth/4, BudgetEditorWindow.TOP_HEIGHT ));
+//      this.bottomLtPanel.setSize(new Dimension( this.frameWidth/4, BudgetEditorWindow.TOP_HEIGHT ));
       bottomPanel.add( this.bottomLtPanel, BorderLayout.WEST);
 */
       /*
@@ -494,7 +496,7 @@ public class BudgetEditorWindow extends JFrame
     this.dataChanged = value;
   }
 
-  
+
   /** 
    * Get the table model for the table.
    * 
@@ -504,42 +506,19 @@ public class BudgetEditorWindow extends JFrame
     return this.tableModel;
   }
 
-  /**
-   * Display this window updating certain controls to make them display properly.
-   * Note that these could not be set before the window is shown because widths
-   * of controls are not known until then.
-   */
-  void showWindow()
-  {
-    // Set the window visible
-    this.setVisible(true);
 
-    // Set the top left panel the same size as the top right panel so that the middle panel is centered
-    this.topLtPanel.setPreferredSize(new Dimension(this.topRtPanel.getWidth(), this.topLtPanel.getHeight()));
-
-    // Set the bottom left panel the same size as the bottom right panel so that the middle panel is centered
-//    this.bottomLtPanel.setPreferredSize(new Dimension(this.bottomRtPanel.getWidth(), this.bottomLtPanel.getHeight()));
-
-    // Make the help link as wide as the panel so that it left justifies properly
-    this.helpLink.setPreferredSize(new Dimension(this.topRtPanel.getWidth()-30, this.helpLink.getHeight()));
-
-    // Force a resize to the preferred sizes
-    this.pack();
-  }
-
-  
   /**
    * Set the frame size based on the width and height of the display.
    */
   private void setFrameSize()
     {
     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    this.frameWidth  = ( gd.getDisplayMode().getWidth() * 8 ) / 10;
-    this.frameHeight = ( gd.getDisplayMode().getHeight() * 8 ) / 10;
+    this.frameWidth  = ( gd.getDisplayMode().getWidth() * 95 ) / 100;
+    this.frameHeight = ( gd.getDisplayMode().getHeight() * 95 ) / 100;
     this.setSize( this.frameWidth, this.frameHeight );
     }
 
-  
+    
   /** 
    * Check to see if any data has changed and prompt the user for what to do if
    * so.
@@ -669,15 +648,15 @@ public class BudgetEditorWindow extends JFrame
    */
   private void showHelp() 
   {
-    String url = "https://github.com/jerrymjones/MonthlyBudgetEditor/wiki";
-    String myOS = System.getProperty("os.name").toLowerCase();
+    final String url = "https://github.com/jerrymjones/MonthlyBudgetEditor/wiki";
+    final String myOS = System.getProperty("os.name").toLowerCase();
     try 
       {
       if (myOS.contains("windows"))
         { // Windows
         if (Desktop.isDesktopSupported())
           {
-          Desktop desktop = Desktop.getDesktop();
+          final Desktop desktop = Desktop.getDesktop();
           desktop.browse(new URI(url));
           }
         else
@@ -685,7 +664,7 @@ public class BudgetEditorWindow extends JFrame
         } 
       else 
         { // Not-windows
-          Runtime runtime = Runtime.getRuntime();
+          final Runtime runtime = Runtime.getRuntime();
           if (myOS.contains("mac")) // Apple
             runtime.exec("open " + url);
           else if (myOS.contains("nix") || myOS.contains("nux")) // Linux
@@ -705,7 +684,7 @@ public class BudgetEditorWindow extends JFrame
    * We'll tell the user and copy the URL to the clipboard so it can be manually
    * opened.
    */
-  private void showHelpFailed(String url)
+  private void showHelpFailed(final String url)
   {
     // Create a transferrable of the url to copy to the clipboard
     final StringSelection sel  = new StringSelection(url); 

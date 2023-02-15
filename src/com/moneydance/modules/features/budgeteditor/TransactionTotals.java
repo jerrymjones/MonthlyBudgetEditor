@@ -38,6 +38,11 @@ import com.infinitekind.moneydance.model.TxnSet;
 import com.infinitekind.util.DateUtil;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
 
+/**
+ * Class to total transactions for a given category item.
+ *
+ * @author  Jerry Jones
+ */
 public class TransactionTotals implements TxnSearch{
 	// Transaction set for this account
 	private final TxnSet txnSet;
