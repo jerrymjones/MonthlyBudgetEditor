@@ -171,7 +171,9 @@ public class TableModel extends AbstractTableModel  {
         if ((!acct.getAccountOrParentIsInactive()) && (!acct.getHideOnHomePage()))
             {
             // Add this category
-            final BudgetCategoryItem item = this.budgetCategoriesList.add(acct, acctType);
+            final BudgetCategoryItem item = this.budgetCategoriesList.add(acct);
+            if (item == null)
+                return;
 
             // If this is not a roll-up category then we need to get the current budget values for this category
             if (!item.getHasChildren())

@@ -177,17 +177,16 @@ public class BudgetEditorWindow extends JFrame
     ** Budget selector - Get a list of monthly style budgets to select from
     */
     this.budgetList = new MyBudgetList(this.context);
-    final String strNames[] = this.budgetList.getBudgetNames();
 
-    // If there are no budgets then we have to inform the user then exit
-    if (strNames.length < 1)
+    // No Monthly budgets are available, so exit
+    if (this.budgetList.getBudgetCount() == 0)
       {
       // Display an error message - No budgets exist!
       JOptionPane.showMessageDialog( this,
-      "No Budgets have been created.  Use 'Tools:Budget Manager' to create a monthly budget before using this extension.",
-      "Error",
+      "No monthly style budgets have been created.  Use 'Tools:Budget Manager' to create a monthly budget before using this extension.",
+      "Error (Monthly Budget Editor)",
       JOptionPane.ERROR_MESSAGE);
-
+      
       // Tell main that window initialization failed
       this.bError = true;
 
@@ -196,6 +195,7 @@ public class BudgetEditorWindow extends JFrame
       }
 
     // Create the selector
+    final String strNames[] = this.budgetList.getBudgetNames();
     final JLabel budgetLabel = new JLabel("Budget:");
     topCtrPanel.add(budgetLabel,GridC.getc(0, 0).insets(10, 0, 10, 15));
     this.budgetSelector = new JComboBox<String>(strNames);

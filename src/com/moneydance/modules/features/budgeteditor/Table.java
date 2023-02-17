@@ -215,22 +215,19 @@ public class Table extends EditingTable {
 	public void copyPriorBudget() {
 		// Get the list of available budgets
 		final MyBudgetList budgetList = new MyBudgetList(this.context);
-		final String strNames[] = budgetList.getBudgetNames();
-
-		// If there are no budgets then we have to inform the user then exit
-		if (strNames.length < 1)
-			{
-			// Display an error message - No budgets exist!
-			JOptionPane.showMessageDialog( this,
-			"No Budgets have been created.  Use 'Tools:Budget Manager' to create a monthly budget before using this extension.",
-			"Error",
-			JOptionPane.ERROR_MESSAGE);
-
-			// Exit without doing anything
-			return;
-			}
+        if (budgetList.getBudgetCount() == 0)
+            {
+            // Display an error message - No budgets exist!
+            JOptionPane.showMessageDialog( this,
+            "No monthly style budgets have been created.  Use 'Tools:Budget Manager' to create a monthly budget before using this extension.",
+            "Error (Monthly Budget Editor)",
+            JOptionPane.ERROR_MESSAGE);
+            
+            return;
+            }
 
 		// Show a dialog to enable selection of the budget to copy from.
+		final String strNames[] = budgetList.getBudgetNames();
 		final String budgetName = (String) JOptionPane.showInputDialog(this.table.getParent(), 
 		"Select the budget you wish to copy from. Note that only monthly type budgets can be copied.",
         "Select Budget", 
@@ -262,7 +259,7 @@ public class Table extends EditingTable {
 				if ((acctType == Account.AccountType.INCOME) || (acctType == Account.AccountType.EXPENSE))
 					{
 					// Get the BudgetCategoryIem by the key (full name)
-					final BudgetCategoryItem item = budgetCategoriesList.getCategoryItem(acct.getFullAccountName());   
+					final BudgetCategoryItem item = budgetCategoriesList.getCategoryItem(acct.getFullAccountName(), acctType);   
 					if (item != null)
 						{
 						// If this is not a roll-up category then we need to get the current budget values for this category
