@@ -114,10 +114,10 @@ public class TableModel extends AbstractTableModel  {
         this.budgetCategoriesList = new BudgetCategoriesList(); 
 
         // Create a special category for the Income - Expenses total row
-        this.budgetCategoriesList.add("Income-Expenses", Account.AccountType.ROOT, 0);
+        this.budgetCategoriesList.add(Constants.UUID_OVERALL, "Income-Expenses", Account.AccountType.ROOT, 0);
 
         // Add a special category to the table for "Income"
-        this.budgetCategoriesList.add("Income", Account.AccountType.INCOME, 1);
+        this.budgetCategoriesList.add(Constants.UUID_INCOME, "Income", Account.AccountType.INCOME, 1);
 
         // Iterate through the accounts to find all active Income categories
         // Note that accounts and categories are the same, they are all Accounts. 
@@ -131,7 +131,7 @@ public class TableModel extends AbstractTableModel  {
             }
 
         // Add a special category to the table for "Expenses"
-        this.budgetCategoriesList.add("Expenses", Account.AccountType.EXPENSE, 1);
+        this.budgetCategoriesList.add(Constants.UUID_EXPENSE, "Expenses", Account.AccountType.EXPENSE, 1);
 
         // Iterate through the accounts to find all active Expense categories
         for (final Iterator<Account> iter = AccountUtil.getAccountIterator(this.context.getCurrentAccountBook()); iter.hasNext(); ) 
@@ -176,7 +176,7 @@ public class TableModel extends AbstractTableModel  {
                 return;
 
             // If this is not a roll-up category then we need to get the current budget values for this category
-            if (!item.getHasChildren())
+            if (!item.hasChildren())
                 {
                 for (int month = 1; month <= 12; month++)
                     {
@@ -333,8 +333,8 @@ public class TableModel extends AbstractTableModel  {
                 {
                 // Display the category indented per the indent level
                 return (item.getIndentLevel() == 0) ? 
-                    "     "+item.getShortName() : 
-                    String.format(" %1$" + item.getIndentLevel() * 6 + "s%2$s", "", item.getShortName());
+                    "    "+item.getShortName() : 
+                    String.format("    %1$" + item.getIndentLevel() * 6 + "s%2$s", "", item.getShortName());
                 }
             // Budget values and totals
             else 
@@ -380,7 +380,7 @@ public class TableModel extends AbstractTableModel  {
             final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
             if (item != null)
                 {
-                if (!item.getHasChildren()) 
+                if (!item.hasChildren()) 
                     {
                     // budget cells on rows that do not have children are editable 
                     return true;

@@ -533,7 +533,7 @@ public class BudgetEditorWindow extends JFrame
     if (this.isDataChanged()) 
       {
       final int response = JOptionPane.showConfirmDialog( this,
-      "Budget values have been edited. Would you like to save the changes first?",
+      "Budget values have been edited. Would you like to save the changes before leaving?",
       "Budget Edited",
       JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
       if (response == 0)  // Yes

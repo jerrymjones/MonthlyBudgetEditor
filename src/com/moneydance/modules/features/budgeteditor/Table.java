@@ -175,7 +175,7 @@ public class Table extends EditingTable {
 
 		// Set text color of totals. Other than the category name in column 0, any other 
 		// cell could potentially be a total so we color it specially.
-		if ((!this.model.isCellEditable(row, column)) && ((column > 0) || (this.model.getBudgetCategoryItem(row).getHasChildren())))
+		if ((!this.model.isCellEditable(row, column)) && ((column > 0) || (this.model.getBudgetCategoryItem(row).hasChildren())))
 			{
 			if (row == 0)
             	c.setForeground(new Color(33, 144, 255));	// Medium blue
@@ -259,11 +259,11 @@ public class Table extends EditingTable {
 				if ((acctType == Account.AccountType.INCOME) || (acctType == Account.AccountType.EXPENSE))
 					{
 					// Get the BudgetCategoryIem by the key (full name)
-					final BudgetCategoryItem item = budgetCategoriesList.getCategoryItem(acct.getFullAccountName(), acctType);   
+					final BudgetCategoryItem item = budgetCategoriesList.getCategoryItem(acct.getUUID());   
 					if (item != null)
 						{
 						// If this is not a roll-up category then we need to get the current budget values for this category
-						if (!item.getHasChildren())
+						if (!item.hasChildren())
 							{
 							for (int month = 1; month <= 12; month++)
 								{
@@ -312,7 +312,7 @@ public class Table extends EditingTable {
 			if (item != null)
 				{
 				// Get actual spending by month for last year 
-				if (!item.getHasChildren())
+				if (!item.hasChildren())
 					{
 					// Retrieve the transaction totals for this account from last year
 					final TransactionTotals actualSpending = new TransactionTotals(this.context, item.getAccount(), this.model.getBudgetYear() - 1, 1, 12);
@@ -389,7 +389,7 @@ public class Table extends EditingTable {
 	 */
    	public void showPopup(final JPopupMenu popMenu, final int row, final int column, final int x, final int y) {
 		// Only process editable cells
-		if ((column > 0) && (!this.model.getBudgetCategoryItem(row).getHasChildren())) 
+		if ((column > 0) && (!this.model.getBudgetCategoryItem(row).hasChildren())) 
 			{
 			// Stop editing in case a different cell was in edit mode
 			final TableCellEditor editor = this.table.cellEditor;
