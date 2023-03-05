@@ -9,7 +9,8 @@ budget from the prior year's budget or actual spending as well as extensive pop 
 enter or update values for each spending category and month.
 
 Monthly Budget Editor is a companion to to my [Monthly Budget Report](https://github.com/jerrymjones/MonthlyBudgetReport) 
-which correctly handles negative budget amounts.
+which correctly handles negative budget amounts. I have also created [Monthly Budget Bars](https://github.com/jerrymjones/MonthlyBudgetBars) 
+another companion that creates a Summary Page widget which also works properly with negative budget amounts.
 
 ## Installation
 
