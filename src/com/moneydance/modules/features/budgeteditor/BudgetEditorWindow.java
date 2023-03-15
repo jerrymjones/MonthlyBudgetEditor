@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -96,6 +97,9 @@ public class BudgetEditorWindow extends JFrame
   // Extension context
   private FeatureModuleContext context;
 
+  // Extension settings
+  private Settings settings;
+
   // The budget selection control
   private JComboBox<String> budgetSelector;
 
@@ -110,6 +114,9 @@ public class BudgetEditorWindow extends JFrame
   private JComboBox<String> yearSelector;
   private int yearIndex;
 
+  // The selector for category currency or base currency
+  JCheckBox useCategoryCurrency;
+  
   // Storage for the table used to edit budget data
   private Table table;
   TableModel tableModel = null;
@@ -143,6 +150,9 @@ public class BudgetEditorWindow extends JFrame
 
     // Set the global data changed flag to indicate the data has not changed 
     this.dataChanged = false;
+
+    // Get the settings for the extension
+    this.settings = Settings.getInstance(this.context.getRootAccount().getBook());
 
     /*
     * Configure the frame for our data entry screen
@@ -199,9 +209,18 @@ public class BudgetEditorWindow extends JFrame
     final JLabel budgetLabel = new JLabel("Budget:");
     topCtrPanel.add(budgetLabel,GridC.getc(0, 0).insets(10, 0, 10, 15));
     this.budgetSelector = new JComboBox<String>(strNames);
-    this.budgetIndex = 0;  // Save the currently selected item in case we need to revert to it.
-    this.budgetSelector.setSelectedIndex(this.budgetIndex);    
     this.budgetSelector.setToolTipText("Select the budget to edit");  
+    
+    // Set the default index to the first item in the list in case the saved 
+    // budget name is no longer valid
+    this.budgetIndex = 0;  
+    this.budgetSelector.setSelectedIndex(this.budgetIndex);  
+
+    // Set the selector to the saved budget name
+    this.budgetSelector.setSelectedItem(this.settings.getBudgetName());   
+    this.budgetIndex = this.budgetSelector.getSelectedIndex();  
+
+    // Add the selector to the window
     topCtrPanel.add(this.budgetSelector, GridC.getc(1, 0).insets(10, 0, 10, 15));
     
     // Create an action listener to dispatch perform the action when this control is changed
@@ -211,7 +230,7 @@ public class BudgetEditorWindow extends JFrame
       {
       if (BudgetEditorWindow.this.tableModel != null)
         {
-        if (!BudgetEditorWindow.this.checkValuesEdited())
+        if (!BudgetEditorWindow.this.checkValuesEdited(true))
           {
           // Budget values have not changed or the user doesn't care so update the table and current index
           BudgetEditorWindow.this.tableModel.Update(BudgetEditorWindow.this.budgetList.getBudget((String)BudgetEditorWindow.this.budgetSelector.getSelectedItem()), (String)BudgetEditorWindow.this.yearSelector.getSelectedItem());
@@ -228,7 +247,7 @@ public class BudgetEditorWindow extends JFrame
     ** Budget year selector - Select budget year - last year, this year, and next year
     */
     final JLabel budgetYrLabel = new JLabel("Budget Year:");
-    topCtrPanel.add(budgetYrLabel,GridC.getc(2, 0).insets(10, 0, 10, 15));
+    topCtrPanel.add(budgetYrLabel,GridC.getc(2, 0).insets(10, 15, 10, 15));
 
     // Get the current year then allow selection of that year plus/minus 1 year
     final Calendar c = Calendar.getInstance();
@@ -247,7 +266,7 @@ public class BudgetEditorWindow extends JFrame
         {
         if (BudgetEditorWindow.this.tableModel != null)
           {
-          if (!BudgetEditorWindow.this.checkValuesEdited())
+          if (!BudgetEditorWindow.this.checkValuesEdited(true))
             {
             // Budget values have not changed or the user doesn't care so update the table and current index
             BudgetEditorWindow.this.tableModel.Update(BudgetEditorWindow.this.budgetList.getBudget((String)BudgetEditorWindow.this.budgetSelector.getSelectedItem()), (String)BudgetEditorWindow.this.yearSelector.getSelectedItem());
@@ -260,56 +279,85 @@ public class BudgetEditorWindow extends JFrame
         }
       });
 
+    /*
+    ** Show use category currency checkbox
+    */
+    this.useCategoryCurrency = new JCheckBox("Use the category currency for values");
+    this.useCategoryCurrency.setSelected(this.settings.getUseCategoryCurrency());
+    this.useCategoryCurrency.setToolTipText("Select to show/edit in the currency set for the category rather than the base currency");
+    topCtrPanel.add(this.useCategoryCurrency,GridC.getc(4, 0).insets(10, 15, 10, 0));
+    this.useCategoryCurrency.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(final ActionEvent e) 
+        {
+        if (BudgetEditorWindow.this.tableModel != null)
+          {
+          // Ask to save data if anything has changed
+          if (BudgetEditorWindow.this.checkValuesEdited(false))
+            {
+            // If true was returned the user cancelled so restore the checkbox and return
+            BudgetEditorWindow.this.useCategoryCurrency.setSelected(!BudgetEditorWindow.this.useCategoryCurrency.isSelected());
+            return;
+            }
 
-      /*
-      ** Top right panel - Initialize Button
-      */
-      // Create a panel in the upper right corner of the window
-      this.topRtPanel = new JPanel(new GridBagLayout());
-      this.topRtPanel.setBackground(colors.headerBG);
-      topPanel.add( this.topRtPanel, BorderLayout.EAST);
-
-      // Add a button to initialize the budget from either prior year's actuals or prior year's budget
-      final JButton initButton = new JButton("Initialize Budget");
-      initButton.setToolTipText("Initialize the selected budget with the prior year budget or actuals");
-      this.topRtPanel.add(initButton, GridC.getc(0, 0).insets(10, 0, 10, 15));   
- 
-      // Create an action listener to dispatch the action when this button is clicked
-      initButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-          BudgetEditorWindow.this.initBudget();
+          // The checkbox changed so update the table
+          BudgetEditorWindow.this.tableModel.Update(BudgetEditorWindow.this.budgetList.getBudget((String)BudgetEditorWindow.this.budgetSelector.getSelectedItem()), (String)BudgetEditorWindow.this.yearSelector.getSelectedItem());
+          }
         }
       });
 
-      /*
-      ** Top left panel - Help Item
-      */
-      // Create a panel in the upper left corner of the window
-      this.topLtPanel = new JPanel(new GridBagLayout());
-      this.topLtPanel.setBackground(colors.headerBG);
-      topPanel.add( this.topLtPanel, BorderLayout.WEST);
+    /*
+    ** Top right panel - Initialize Button
+    */
+    // Create a panel in the upper right corner of the window
+    this.topRtPanel = new JPanel(new GridBagLayout());
+    this.topRtPanel.setBackground(colors.headerBG);
+    topPanel.add( this.topRtPanel, BorderLayout.EAST);
 
-      // Add a clickable text link to request help
-      this.helpLink = new JLabel("User Guide", JLabel.LEFT);
-      this.helpLink.setForeground(new Color(33, 144, 255));
+    // Add a button to initialize the budget from either prior year's actuals or prior year's budget
+    final JButton initButton = new JButton("Initialize Budget");
+    initButton.setToolTipText("Initialize the selected budget with the prior year budget or actuals");
+    this.topRtPanel.add(initButton, GridC.getc(0, 0).insets(10, 0, 10, 15));   
 
-      // Set the preferred size of this item so that the center panel actually is
-      // centered on the frame.
-      final Dimension d = this.topRtPanel.getPreferredSize();
-      d.setSize(d.width - 30, d.height);
-      this.helpLink.setPreferredSize(d);
+    // Create an action listener to dispatch the action when this button is clicked
+    initButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        BudgetEditorWindow.this.initBudget();
+      }
+    });
+
+    /*
+    ** Top left panel - Help Item
+    */
+    // Create a panel in the upper left corner of the window
+    this.topLtPanel = new JPanel(new GridBagLayout());
+    this.topLtPanel.setBackground(colors.headerBG);
+    topPanel.add( this.topLtPanel, BorderLayout.WEST);
+
+    // Add a clickable text link to request help
+    this.helpLink = new JLabel("User Guide", JLabel.LEFT);
+    if (colors.isDarkTheme())
+      this.helpLink.setForeground(new Color(33, 144, 255));	// Medium blue
+    else 
+      this.helpLink.setForeground(colors.reportBlueFG);
       
-      // Add the help link
-      this.topLtPanel.add(this.helpLink, GridC.getc(0, 0).insets(10, 15, 10, 15));
+    // Set the preferred size of this item so that the center panel actually is
+    // centered on the frame.
+    final Dimension d = this.topRtPanel.getPreferredSize();
+    d.setSize(d.width - 30, d.height);
+    this.helpLink.setPreferredSize(d);
+    
+    // Add the help link
+    this.topLtPanel.add(this.helpLink, GridC.getc(0, 0).insets(10, 15, 10, 15));
 
-      // Create an action listener to dispatch the action when this label is clicked
-      this.helpLink.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(final MouseEvent e) {
-          BudgetEditorWindow.this.showHelp();
-        }
-      });
+    // Create an action listener to dispatch the action when this label is clicked
+    this.helpLink.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(final MouseEvent e) {
+        BudgetEditorWindow.this.showHelp();
+      }
+    });
 
     /*
     * Add the Middle Panel - Budget Editor Table
@@ -527,22 +575,22 @@ public class BudgetEditorWindow extends JFrame
    * to leave after all (Cancel). Returns false if data hasn't changed or if the
    * user doesn't care or if the data was saved first (Yes or No).
    */
-  private boolean checkValuesEdited()
+  private boolean checkValuesEdited(boolean isLeaving)
     {
     // Prompt with a warning if the data has changed else just close the console
     if (this.isDataChanged()) 
       {
       final int response = JOptionPane.showConfirmDialog( this,
-      "Budget values have been edited. Would you like to save the changes before leaving?",
+      "Budget values have been edited. Would you like to save the changes"+(isLeaving ? " before leaving" : "") + "?",
       "Budget Edited",
       JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
       if (response == 0)  // Yes
         {
-          this.tableModel.saveData();
+        this.tableModel.saveData();
         return false;
         }
       else if (response == 2) // Cancel
-        return true;
+        return true; 
       }
 
     // Either the data wasn't changed or the user selected No
@@ -581,7 +629,7 @@ public class BudgetEditorWindow extends JFrame
    */
   private boolean cancel() {
     // Prompt with a warning if the data has changed. If true is returned then the user doesn't want to cancel
-    if (this.checkValuesEdited())
+    if (this.checkValuesEdited(true))
         return true;
     else
       {
@@ -598,6 +646,11 @@ public class BudgetEditorWindow extends JFrame
    */
   private void save() 
   {
+    // Save the current settings for next time
+    this.settings.setBudgetName(this.budgetSelector.getSelectedItem().toString());
+    this.settings.setUseCategoryCurrency(this.useCategoryCurrency.isSelected());
+    this.settings.saveSettings();
+
     if (this.isDataChanged()) 
       // Save the changes then exit
       this.tableModel.saveData();

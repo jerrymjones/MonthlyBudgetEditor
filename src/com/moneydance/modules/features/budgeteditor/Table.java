@@ -41,6 +41,7 @@ import java.awt.event.MouseEvent;
 import java.util.Iterator;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -49,6 +50,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -131,7 +133,9 @@ public class Table extends EditingTable {
         for (int i = 1; i < this.getColumnCount(); i++ ) 
 			{
             final TableColumn colSelect = this.getColumnModel().getColumn(i);
-            colSelect.setCellRenderer(new CurrencyTableCellRenderer());
+			DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+			cellRenderer.setHorizontalAlignment(JLabel.RIGHT);
+			colSelect.setCellRenderer(cellRenderer);
 			if (i != this.getColumnCount() - 1) // Don't set for totals column
 				colSelect.setCellEditor(new CurrencyTableCellEditor(this, new JTextField()));
         	}
@@ -178,9 +182,19 @@ public class Table extends EditingTable {
 		if ((!this.model.isCellEditable(row, column)) && ((column > 0) || (this.model.getBudgetCategoryItem(row).hasChildren())))
 			{
 			if (row == 0)
-            	c.setForeground(new Color(33, 144, 255));	// Medium blue
+				{
+				if (this.colors.isDarkTheme())
+            		c.setForeground(new Color(33, 144, 255));	// Medium blue
+				else 
+					c.setForeground(this.colors.reportBlueFG.darker());
+				}
 			else
-				c.setForeground(new Color(0, 204, 204));	// Dark Cyan
+				{
+				if (this.colors.isDarkTheme())
+					c.setForeground(new Color(0, 204, 204));	// Dark Cyan
+				else 
+					c.setForeground(this.colors.reportBlueFG);
+				}
 			}
 		else
 			{
@@ -198,7 +212,7 @@ public class Table extends EditingTable {
 
 		// Highlight a right-clicked cell
 		if ((row == this.popRow) && (column == this.popColumn))
-			c.setBackground(new Color(51, 153, 255));
+			c.setBackground(this.colors.selectedRowGradient1);
 
 		// Remove border from the cells. The editor will still set the selection border. This makes uneditable cells also appear unselectable.
 		((JComponent) c).setBorder(null);
@@ -321,7 +335,7 @@ public class Table extends EditingTable {
 					for (int i = 1; i <= 12; i++)
 						{
 						// Get the actual spending
-						Double v = (double)actualSpending.getTotals()[i] / 100d;
+						Long v = actualSpending.getTotals()[i];
 
 						// If this is an income category then the sign has to be changed
 						if (item.getCategoryType() == Account.AccountType.INCOME)
@@ -556,7 +570,7 @@ public class Table extends EditingTable {
 	 */
 	private void previous(final int row, final int column)
 	{
-		this.model.setValueAt(this.model.getValueAt(row, column-1), row, column);
+		this.model.setValueAt(this.model.getLongValueAt(row, column-1), row, column);
 	}
 
 	
@@ -568,7 +582,7 @@ public class Table extends EditingTable {
 	 */
 	private void copytoEOY(final int row, final int column)
 	{
-		final Object cellValue = this.model.getValueAt(row, column);
+		final Long cellValue = this.model.getLongValueAt(row, column);
 		for (int i = column + 1; i < 13; i++)
 			this.model.setValueAt(cellValue, row, i);
 	}
@@ -582,7 +596,7 @@ public class Table extends EditingTable {
 	 */
 	private void copytoAll(final int row, final int column)
 	{
-		final Object cellValue = this.model.getValueAt(row, column);
+		final Long cellValue = this.model.getLongValueAt(row, column);
 		for (int i = 1; i < 13; i++)
 			{
 			if (i != column)
@@ -613,7 +627,7 @@ public class Table extends EditingTable {
 			final Long totalBudget = item.getBudgetValueForMonth(column - 1) + item.getBudgetValueForMonth(column);
 
 			// Set last months budget equal to actual spending for the month
-			Double v = actualSpending.getTotals()[column - 1] / 100d;
+			Long v = actualSpending.getTotals()[column - 1];
 
 			// If this is an income category then the sign has to be changed
 			if (item.getCategoryType() == Account.AccountType.INCOME)
@@ -625,9 +639,9 @@ public class Table extends EditingTable {
 			// Subtract last month's actual spending from the total amount budgeted and store as this month's new budget
 			// If this is an income category then the sign has to be changed
 			if (item.getCategoryType() == Account.AccountType.INCOME)
-				v = (double)(totalBudget + actualSpending.getTotals()[column - 1]) / 100d;
+				v = (totalBudget + actualSpending.getTotals()[column - 1]);
 			else		
-				v = (double)(totalBudget - actualSpending.getTotals()[column - 1]) / 100d;
+				v = (totalBudget - actualSpending.getTotals()[column - 1]);
 
 			// Save the new value for the current month
 			this.model.setValueAt(v, row, column);
@@ -651,7 +665,6 @@ public class Table extends EditingTable {
 		Long totalBudget = 0l;
 		Long totalSpending  = 0l;
 		int i;
-		Double v;
 
 		// Get the budget category item
 		final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
@@ -675,13 +688,11 @@ public class Table extends EditingTable {
 					spend = spend * -1;
 
 				totalSpending += spend;
-				v = (double)spend / 100d;
-				this.model.setValueAt(v, row, month);
+				this.model.setValueAt(spend, row, month);
 				}
 
 			// Subtract the prior months actual spending from the total amount budgeted for the period and store as this month's new budget
-			v = (totalBudget - totalSpending) / 100d;
-			this.model.setValueAt(v, row, column);
+			this.model.setValueAt((totalBudget - totalSpending), row, column);
 			}
 		else
 			System.err.println("ERROR: Item is null in rolloverAll.");
@@ -705,7 +716,7 @@ public class Table extends EditingTable {
 			final TransactionTotals actualTotals = new TransactionTotals(this.context, item.getAccount(), this.model.getBudgetYear(), column, 1);
 
 			// Set the selected cell equal to the prior month actuals
-			Double v = actualTotals.getTotals()[column] / 100d;
+			Long v = actualTotals.getTotals()[column];
 
 			// If this is an income category then the sign has to be changed
 			if (item.getCategoryType() == Account.AccountType.INCOME)
@@ -736,8 +747,7 @@ public class Table extends EditingTable {
 			final TransactionTotals actualTotals = new TransactionTotals(this.context, acct, this.model.getBudgetYear(), column - 1, 1);
 
 			// Set the selected cell equal to the prior month totals
-			final Double v = actualTotals.getTotals()[column - 1] / 100d;
-			this.model.setValueAt(v, row, column);
+			this.model.setValueAt(actualTotals.getTotals()[column - 1], row, column);
 			}
 		else
 			System.err.println("ERROR: Item is null in settoPriorSpend.");	
@@ -761,15 +771,15 @@ public class Table extends EditingTable {
 			final long cellValue = item.getBudgetTotal();
 
 			// Calculate monthly amount and final December amount which may be different
-			final long monthlyValue = cellValue / 12;
-			final long decemberValue = cellValue - (monthlyValue * 11);
+			final Long monthlyValue = cellValue / 12;
+			final Long decemberValue = cellValue - (monthlyValue * 11);
 
 			// Now spread the value across all months except december
 			for (int i = 1; i < 12; i++)
-				this.model.setValueAt((Double)(monthlyValue / 100d), row, i);
+				this.model.setValueAt(monthlyValue, row, i);
 
 			// Now set December to whatever is left over
-			this.model.setValueAt((Double)(decemberValue / 100d), row, 12);
+			this.model.setValueAt(decemberValue, row, 12);
 			}
 		else
 			System.err.println("ERROR: Item is null in distributeTotal(.");
@@ -782,8 +792,6 @@ public class Table extends EditingTable {
 	 * @param column - The column where the right mouse click occurred.
 	 */
 	private void setToActuals(final int row, final int column) {
-		Double v;
-
 		// Get the budget category item
 		final BudgetCategoryItem item = this.model.getBudgetCategoriesList().getCategoryItemByIndex(row);
 		if (item != null)
@@ -801,8 +809,7 @@ public class Table extends EditingTable {
 				if (item.getCategoryType() == Account.AccountType.INCOME)
 					spend = spend * -1;
 
-				v = (double)spend / 100d;
-				this.model.setValueAt(v, row, month);
+				this.model.setValueAt(spend, row, month);
 				}
 			}
 		else

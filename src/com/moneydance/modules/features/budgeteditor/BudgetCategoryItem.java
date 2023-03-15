@@ -32,6 +32,8 @@ package com.moneydance.modules.features.budgeteditor;
 
 import com.infinitekind.moneydance.model.Account;
 import com.infinitekind.moneydance.model.Account.AccountType;
+import com.infinitekind.moneydance.model.CurrencyType;
+import com.infinitekind.moneydance.model.CurrencyUtil;
 
 /**
 * Class for budget category items
@@ -60,6 +62,9 @@ final class BudgetCategoryItem {
     // The type of account. Account.AccountType.ROOT (Totals),
     // Account.AccountType.Income (Income) or Account.AccountType.EXPENSE (Expenses)
     private final Account.AccountType categoryType;
+
+    // The currency type for this category
+    private final CurrencyType currencyType;
     
     // WHen true, this category has children and no budget values should exist for this category.
     private final boolean hasChildren; 
@@ -81,7 +86,7 @@ final class BudgetCategoryItem {
      * @param indent - The indent level for this category.
      * @param hasChildren - true if this category has children, false otherwise.
      */
-    BudgetCategoryItem(final Account acct, final Account.AccountType type, final int parent, final int indent, final boolean hasChildren ) {
+    BudgetCategoryItem(final Account acct, final Account.AccountType type, CurrencyType currencyType, final int parent, final int indent, final boolean hasChildren ) {
         // Save the account
         this.account = acct;
 
@@ -93,6 +98,9 @@ final class BudgetCategoryItem {
 
         // Save the Category type
         this.categoryType = type;
+                
+        // Save the currency type
+        this.currencyType = currencyType;
 
         // Save flag indicating if this category has children and thus shouldn't be edited
         this.hasChildren = hasChildren;
@@ -111,7 +119,7 @@ final class BudgetCategoryItem {
      * @param parent - The parent index for this category.
      * @param indent - The indent level for this category.
      */
-    BudgetCategoryItem(final String name, final Account.AccountType type, final int parent, final int indent) {
+    BudgetCategoryItem(final String name, final Account.AccountType type, CurrencyType currencyType, final int parent, final int indent) {
         // Special accounts don't have an account object
         this.account = null;
 
@@ -123,6 +131,9 @@ final class BudgetCategoryItem {
 
         // Save the Category type
         this.categoryType = type;
+                
+        // Save the currency type
+        this.currencyType = currencyType;
 
         // Special accounts always have children
         this.hasChildren = true;
@@ -182,6 +193,14 @@ final class BudgetCategoryItem {
         return this.categoryType;
     }
 
+    
+    /** 
+     * @return The CurrencyType for this category
+     */
+    public CurrencyType getCurrencyType() {
+        return this.currencyType;
+    }
+    
     
     /** 
      * Get the budget total for this category.
@@ -264,8 +283,12 @@ final class BudgetCategoryItem {
             final BudgetCategoryItem parentItem = budgetCategoriesList.getCategoryItemByIndex(this.parentRow);
             if (parentItem != null)
                 {
-                value = parentItem.budgetValues[month] + difference;
-                parentItem.setBudgetValueForMonth(model, budgetCategoriesList, month, value, type);
+                // Convert the difference to the parent currency if needed
+                if (this.getCurrencyType() != parentItem.getCurrencyType())
+                    difference = CurrencyUtil.convertValue(difference, this.getCurrencyType(), parentItem.getCurrencyType());
+                      
+                // Update the parent    
+                parentItem.setBudgetValueForMonth(model, budgetCategoriesList, month, parentItem.budgetValues[month] + difference, type);
 
                 // Notify all listeners that the value of the cell at [row, column] has been updated.
                 if (model != null)

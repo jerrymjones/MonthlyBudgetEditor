@@ -30,18 +30,22 @@
  */ 
 package com.moneydance.modules.features.budgeteditor;
 
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Iterator;
 
 import javax.swing.table.AbstractTableModel;
 
 import com.infinitekind.moneydance.model.Account;
+import com.infinitekind.moneydance.model.AccountBook;
 import com.infinitekind.moneydance.model.Account.AccountType;
 import com.infinitekind.moneydance.model.AccountUtil;
 import com.infinitekind.moneydance.model.Budget;
 import com.infinitekind.moneydance.model.BudgetItem;
 import com.infinitekind.moneydance.model.BudgetItemList;
 import com.infinitekind.moneydance.model.BudgetPeriod;
+import com.infinitekind.moneydance.model.CurrencyType;
+import com.infinitekind.moneydance.model.CurrencyUtil;
 import com.infinitekind.moneydance.model.PeriodType;
 import com.infinitekind.util.DateUtil;
 import com.moneydance.apps.md.controller.FeatureModuleContext;
@@ -62,6 +66,9 @@ public class TableModel extends AbstractTableModel  {
     // The context of the extension
     private final FeatureModuleContext context;
 
+    // The current data file
+    private final AccountBook book;
+
     // Budget object for the selected budget
     private Budget budget;
 
@@ -71,6 +78,9 @@ public class TableModel extends AbstractTableModel  {
     // Budget Categories list
     private BudgetCategoriesList budgetCategoriesList;
 
+    // The decimal separator character
+    private char separator;
+
     public TableModel(final BudgetEditorWindow window, final FeatureModuleContext context, final Budget budget, final String year) {
         // Save main window for later
         this.window = window;
@@ -78,11 +88,19 @@ public class TableModel extends AbstractTableModel  {
         // Save context for later
         this.context = context;
 
+        // Save the account book for later
+        this.book = context.getCurrentAccountBook();
+
         // Save the budget name for later use
         this.budget = budget;
 
         // Save the budget year for later
         this.year = Integer.parseInt(year);
+
+        // Get the decimal separator for this locale
+        DecimalFormat format = (DecimalFormat) DecimalFormat.getInstance();
+        DecimalFormatSymbols symbols = format.getDecimalFormatSymbols();
+        this.separator = symbols.getDecimalSeparator();
 
         // Load the category and budget data from Moneydance
         this.LoadData();
@@ -111,7 +129,7 @@ public class TableModel extends AbstractTableModel  {
      */
     public void LoadData () {
         // Create a new budget categories list
-        this.budgetCategoriesList = new BudgetCategoriesList(); 
+        this.budgetCategoriesList = new BudgetCategoriesList(this.book); 
 
         // Create a special category for the Income - Expenses total row
         this.budgetCategoriesList.add(Constants.UUID_OVERALL, "Income-Expenses", Account.AccountType.ROOT, 0);
@@ -279,7 +297,39 @@ public class TableModel extends AbstractTableModel  {
         return this.year;
     }
 
+    /** 
+     * Method to get the Long value at a specific row and column.
+     * 
+     * @param row - The row in the table.
+     * @param column - The column in the table.
+     * @return Object - The value at the specified row and column. (Always returns a String)
+     */
+    public Long getLongValueAt(final int row, final int column) {
+        // Get the category item
+        final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
+        if (item != null)
+            {
+            // Category names can't be returned as a Long
+            if ( column == 0)  
+                return 0l;
+            // Budget values and totals
+            else 
+                {
+                if (column < 13)
+                    return (item.getBudgetValueForMonth(column));
+                else
+                    // Add spacing to right end of table data
+                    return (item.getBudgetValueForMonth(column));
+                }
+            }
+        else
+            {
+            System.err.println("ERROR: Item is null in getLongValueAt.");
+            return null;
+            }
+    }
     
+
     /** 
      * Method to get the number of columns in the table.
      * 
@@ -313,47 +363,7 @@ public class TableModel extends AbstractTableModel  {
         return this.columnNames[column];
     }
 
-    
-    /** 
-     * Method to get the value at a specific row and column.
-     * 
-     * @param row - The row in the table.
-     * @param column - The column in the table.
-     * @return Object - The value at the specified row and column.
-     */
-    @Override
-    // Returns a Double for editable cells - be careful when saving
-    public Object getValueAt(final int row, final int column) {
-        // Get the category item
-        final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
-        if (item != null)
-            {
-            // Category names
-            if ( column == 0)  
-                {
-                // Display the category indented per the indent level
-                return (item.getIndentLevel() == 0) ? 
-                    "    "+item.getShortName() : 
-                    String.format("    %1$" + item.getIndentLevel() * 6 + "s%2$s", "", item.getShortName());
-                }
-            // Budget values and totals
-            else 
-                {
-                if (column < 13)
-                    return (Double)(item.getBudgetValueForMonth(column) / 100.0d);
-                else
-                    // Add spacing to right end of table data
-                    return NumberFormat.getCurrencyInstance().format((Double)(item.getBudgetValueForMonth(column) / 100.0d))+"    ";
-                }
-            }
-        else
-            {
-            System.err.println("ERROR: Item is null in getValueAt.");
-            return null;
-            }
-    }
-
-    
+        
     /** 
      * Method to get the class for the requested column.
      * 
@@ -393,7 +403,53 @@ public class TableModel extends AbstractTableModel  {
         // have children are not editable
         return false;    
     }
+
     
+    /** 
+     * Method to get the value at a specific row and column.
+     * 
+     * @param row - The row in the table.
+     * @param column - The column in the table.
+     * @return Object - The value at the specified row and column. (Always returns a String)
+     */
+    @Override
+    public Object getValueAt(final int row, final int column) {
+        // Get the category item
+        final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
+        if (item != null)
+            {
+            // Get the selected currency type
+            CurrencyType toType;
+            if (this.window.useCategoryCurrency.isSelected())
+                toType = item.getCurrencyType();                    // Using Category currency
+            else
+                toType = this.book.getCurrencies().getBaseType();   // Using Base currency
+
+            // Category names
+            if ( column == 0)  
+                {
+                // Display the category indented per the indent level
+                return (item.getIndentLevel() == 0) ? 
+                    "    "+item.getShortName() : 
+                    String.format("    %1$" + item.getIndentLevel() * 6 + "s%2$s", "", item.getShortName());
+                }
+            // Budget values and totals
+            else 
+                {
+                if (column < 13)
+                    return (toType.formatFancy(CurrencyUtil.convertValue(item.getBudgetValueForMonth(column), item.getCurrencyType(), toType), this.separator));
+                else
+                    // Add spacing to right end of table data
+                    return (toType.formatFancy(CurrencyUtil.convertValue(item.getBudgetValueForMonth(column), item.getCurrencyType(), toType), this.separator)+"    ");
+                }
+            }
+        else
+            {
+            System.err.println("ERROR: Item is null in getValueAt.");
+            return null;
+            }
+    }
+ 
     
     /** 
      * Method to set the value at a specific row and column.
@@ -405,20 +461,106 @@ public class TableModel extends AbstractTableModel  {
     @Override    
     public void setValueAt(final Object value, final int row, final int column) {
         // Calculated long value to store
-        long lv;
+        Long lv;
 
         // Get the item to update
         final BudgetCategoryItem item = this.budgetCategoriesList.getCategoryItemByIndex(row);
         if (item != null)
             {
-            // Calculate the new edited value
-            if (value instanceof Double)
-                lv = Math.round((Double)value * 100d);
-            else if (value instanceof String)
-                lv = Math.round(Double.parseDouble((String)value) * 100d);
+            // If the object passed is a string - Usually when a budget value has been edited.
+            // We need to parse the string.
+            if (value instanceof String)
+                {
+                CurrencyType cType = item.getCurrencyType();
+                String strPrefix = cType.getPrefix();
+                String strSuffix = cType.getSuffix();
+                int decPlaces = cType.getDecimalPlaces();
+                String strValue = (String)value;
+
+                // Remove the currency prefix
+                if (!strPrefix.equals("")) 
+                    {
+                    if (strValue.length() >= strPrefix.length())
+                        {
+                        String strLeft = strValue.substring(0, strPrefix.length());
+                        if (strLeft.equals(strPrefix))
+                            strValue = strValue.substring(strPrefix.length());
+                        }
+                    }
+
+                // Remove the currency suffix
+                if (!strSuffix.equals("")) 
+                    {
+                    if (strValue.length() >= strSuffix.length())
+                        {
+                        String strRight = strValue.substring(strValue.length()-strSuffix.length());
+                        if (strRight.equals(strSuffix))
+                            strValue = strValue.substring(0,strValue.length()-strSuffix.length());
+                        }
+                    }
+
+                // Remove anything left other than a digit, comma, period or -
+                strValue = strValue.replaceAll("[^\\d-,.]", "");
+
+                // Search for a decimal point (could be either a period or a comma)
+                // and must be within the number of decimal places specified for
+                // the currency.
+                int decimalIndex = decPlaces;
+                if (decimalIndex != 0)
+                    {
+                    // Search backward through the string looking for a decimal point.
+                    for (int i = strValue.length() - 1; i >= 0; i--, decimalIndex--)
+                        {
+                        // If we don't find a decimal point within the decimal places allowed
+                        // assume there isn't one and any other periods or commas are digit
+                        // separators so we ignore them.
+                        if (decimalIndex == -1)
+                            {
+                            decimalIndex = 2;
+                            break;
+                            }
+
+                        // If this character a decimal point (either a period or comma)
+                        char c = strValue.charAt(i);
+                        if ((c == '.') || (c == ','))
+                            break;
+
+                        // If we didn't find a decimal point within the length of the string  
+                        if (i == 0)
+                            {
+                            decimalIndex = 2;
+                            break;
+                            }
+                        }
+                    }
+
+                // Now remove the decimal point and any digit separators
+                strValue = strValue.replaceAll("[^\\d-]", "");
+
+                // Convert the string to a long
+                lv = Long.parseLong(strValue);
+
+                // Ensure the value contains the correct number of digits for the decimal places
+                for (int i = 0; i < decimalIndex; i++)
+                    lv = lv * 10;
+
+                // If not using the category currency, then we need to convert the value
+                // to the category currency before setting it
+                if (!this.window.useCategoryCurrency.isSelected())
+                    lv = CurrencyUtil.convertValue(lv, this.book.getCurrencies().getBaseType(), item.getCurrencyType());
+                } // value is instanceof String
+            else if (value instanceof Long)
+                {
+                // Longs are passed in during copy operations and do not need to be parsed or converted
+                // to another currency.
+                lv = (Long)value;
+                } // value is instanceof Long
             else
-                lv = Math.round(Double.parseDouble(value.toString()) * 100d);
-                
+                {
+                System.err.println("ERROR: Invalid class passed to setValueAt: "+value.getClass().getName());
+                return;
+                }
+
             // Update the data only if the new value is different than the old value
             if (item.getBudgetValueForMonth(column) != lv)
                 {

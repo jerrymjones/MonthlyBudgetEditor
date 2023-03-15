@@ -38,4 +38,12 @@ public abstract class Constants
     public static final String UUID_OVERALL         = "00000000-0000-0000-0000-000000000001";
     public static final String UUID_INCOME          = "00000000-0000-0000-0000-000000000002";
     public static final String UUID_EXPENSE         = "00000000-0000-0000-0000-000000000003";   
+
+    /*
+     * Configuration parameter constants
+     */
+    public static String MBE_SETTINGS               = "MonthlyBudgetEditor_settings";   // Settings 
+    public static final int SETTINGS_VERSION_1      = 1;                                // Version 1 of the settings
+    public static final int V1_NUM_MBR_SETTINGS     = 3;                                // Number of MBB_Settings in version 1 settings: (Version, Budget name, UseCategoryCurrency)
+ 
 }
