@@ -204,9 +204,9 @@ public class Table extends EditingTable {
 		
 		// Moneydance doesn't really support negative budgets for some odd reason so highlight those values red
 		final Object value = this.table.getValueAt(row, column);
-		if (value instanceof Number)
+		if (value instanceof String)
 			{
-			if (((Double)value < 0) && (this.model.isCellEditable(row, column)))
+			if (((String)value).contains("-") && (this.model.isCellEditable(row, column)))
 				c.setForeground(Color.RED);
 			}
 
