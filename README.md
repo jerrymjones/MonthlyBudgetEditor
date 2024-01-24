@@ -1,5 +1,7 @@
 # MoneyDance Monthly Budget Editor
 
+## WARNING! As of 1/1/2024 I am no longer maintaining this code. It is freely available for someone else to pick up and maintain.
+
 For help using this extension see the [Wiki](https://github.com/jerrymjones/MonthlyBudgetEditor/wiki).
 
 Monthly Budget Editor is an extension for the [Moneydance](https://moneydance.com/)
